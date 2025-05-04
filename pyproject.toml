@@ -1,0 +1,71 @@
+[project]
+name = "example-project"
+version = "0.1.0"
+description = "A BlaBlaCar-like project with modular monolithic and onion architectures"
+readme = "README.md"
+requires-python = "==3.13.*"
+dependencies = [
+    "fastapi[standard]==0.115.*",
+]
+
+[dependency-groups]
+dev = [
+    "mypy==1.15.*",
+    "ruff==0.11.*",
+]
+
+
+[tool.mypy]
+explicit_package_bases = 1
+python_version = '3.13'
+
+disallow_incomplete_defs = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+
+
+[tool.ruff]
+fix = true
+line-length = 120
+show-fixes = true
+target-version = 'py313'
+
+
+[tool.ruff.format]
+docstring-code-line-length = 88
+quote-style = 'single'
+
+
+[tool.ruff.lint]
+ignore = [
+    'ARG', 'CPY001', 'D100', 'D104', 'D105', 'D106', 'D107', 'D203', 'D205', 'D213',
+    'D406', 'D407', 'D413', 'FURB140', 'PLC0414', 'RUF010', 'TD003', 'TID252',
+]
+select = ['ALL']
+
+
+[tool.ruff.lint.flake8-annotations]
+ignore-fully-untyped = true
+
+
+[tool.ruff.lint.flake8-pytest-style]
+fixture-parentheses = false
+mark-parentheses = false
+
+
+[tool.ruff.lint.flake8-quotes]
+inline-quotes = 'single'
+
+
+[tool.ruff.lint.isort]
+section-order = ['future', 'standard-library', 'third-party', 'fastapi-section', 'first-party', 'local-folder']
+
+
+[tool.ruff.lint.isort.sections]
+'fastapi-section' = ['fastapi', 'pydantic', 'pydantic_settings', 'sqlalchemy']
+
+
+[tool.ruff.lint.pycodestyle]
+max-doc-length = 88
