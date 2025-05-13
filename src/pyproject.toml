@@ -5,7 +5,13 @@ description = "A BlaBlaCar-like project with modular monolithic and onion archit
 readme = "README.md"
 requires-python = "==3.13.*"
 dependencies = [
+    "alembic==1.15.*",
     "fastapi[standard]==0.115.*",
+    "orjson==3.10.*",
+    "psycopg[binary]==3.2.*",
+    "pydantic-settings==2.9.*",
+    "redis[hiredis]==5.3.*",
+    "sqlalchemy[asyncio]==2.0.*",
 ]
 
 [dependency-groups]
@@ -16,6 +22,7 @@ dev = [
 
 
 [tool.mypy]
+exclude = ['^_alembic/']
 explicit_package_bases = 1
 python_version = '3.13'
 
@@ -27,6 +34,7 @@ warn_unreachable = true
 
 
 [tool.ruff]
+extend-exclude = ['_alembic']
 fix = true
 line-length = 120
 show-fixes = true
@@ -40,8 +48,8 @@ quote-style = 'single'
 
 [tool.ruff.lint]
 ignore = [
-    'ARG', 'CPY001', 'D100', 'D104', 'D105', 'D106', 'D107', 'D203', 'D205', 'D213',
-    'D406', 'D407', 'D413', 'FURB140', 'PLC0414', 'RUF010', 'TD003', 'TID252',
+    'ARG', 'A001', 'A002', 'COM812', 'CPY001', 'D100', 'D104', 'D105', 'D106', 'D107', 'D203', 'D205', 'D213', 'D400',
+    'D406', 'D407', 'D413', 'D415', 'FURB140', 'PLC0414', 'RUF010', 'TC003', 'TD003', 'TID252',
 ]
 select = ['ALL']
 
@@ -50,21 +58,12 @@ select = ['ALL']
 ignore-fully-untyped = true
 
 
-[tool.ruff.lint.flake8-pytest-style]
-fixture-parentheses = false
-mark-parentheses = false
-
-
 [tool.ruff.lint.flake8-quotes]
 inline-quotes = 'single'
 
 
 [tool.ruff.lint.isort]
-section-order = ['future', 'standard-library', 'third-party', 'fastapi-section', 'first-party', 'local-folder']
-
-
-[tool.ruff.lint.isort.sections]
-'fastapi-section' = ['fastapi', 'pydantic', 'pydantic_settings', 'sqlalchemy']
+section-order = ['future', 'standard-library', 'third-party', 'first-party', 'local-folder']
 
 
 [tool.ruff.lint.pycodestyle]
