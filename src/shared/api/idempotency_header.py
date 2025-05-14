@@ -6,7 +6,7 @@ from fastapi import Depends, Header, HTTPException, status
 from ..infrastructure.redis import common as redis_connection
 
 CACHE_KEY_PATTERN = 'idempotency:{key}'
-IDEMPOTENCY_TIMEOUT = 60 * 2  # 2 mins
+IDEMPOTENCY_TIMEOUT = 60  # 1 min
 
 
 async def check_idempotency(idempotency_key: Annotated[UUID, Header()]) -> None:

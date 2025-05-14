@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Protocol
 if TYPE_CHECKING:
     from ...domain.models import UserId
 
-EMAIL_CONFIRMATION_CODE_TIMEOUT_SECS = 15 * 60  # 15 mins
+EMAIL_CONFIRMATION_CODE_TIMEOUT_SECS = 5 * 60  # 5 mins
 
 
 class EmailConfirmationCodeServiceValidationError(Exception):

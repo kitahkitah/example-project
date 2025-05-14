@@ -49,7 +49,7 @@ async def update_user(user_id: UserBearerAuth, body: schemas.UpdateUserRequest) 
         update_user_uc = uc.UpdateUserUsecase(uow)
 
         try:
-            return await update_user_uc.execute(user_data, user_id=user_id)
+            return await update_user_uc.execute(user_id, user_data)
         except ProjectError as err:
             raise APIError(status.HTTP_400_BAD_REQUEST, err.code, err.detail) from None
 
@@ -75,7 +75,10 @@ async def send_confirmation_mail(user_id: UserBearerAuth, idempotency: Idempoten
         mail_client = FakeMailClient(logger)
         mail_uc = uc.SendEmailConfirmationCodeUsecase(uow, code_service, mail_client, settings.EMAIL_FROM)
 
-        await mail_uc.execute(user_id)
+        try:
+            await mail_uc.execute(user_id)
+        except ProjectError as err:
+            raise APIError(status.HTTP_400_BAD_REQUEST, err.code, err.detail) from None
 
 
 @router.get('/{user_id}', response_model=schemas.GetUserResponse)

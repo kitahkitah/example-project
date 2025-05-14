@@ -2,9 +2,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from ...errors import EmailIsConfirmedError
 from ..protocols.email_confirmation_code_service import EMAIL_CONFIRMATION_CODE_TIMEOUT_SECS
 from ..protocols.mail_service import MailDTO
-from .get_user import GetUserUsecase
 
 if TYPE_CHECKING:
     from ...domain.models import UserId
@@ -25,12 +25,18 @@ class SendEmailConfirmationCodeUsecase:
     ) -> None:
         self._email_confirmation_code_service = email_confirmation_code_service
         self._email_from = email_from
-        self._get_user_usecase = GetUserUsecase(uow)
         self._mail_client = mail_client
+        self._uow = uow
 
     async def execute(self, user_id: UserId) -> None:
-        """Get the user, generate a confirmation code, send it."""
-        user = await self._get_user_usecase.execute(user_id)
+        """Get the user, generate a confirmation code, send it.
+
+        Raise:
+            - EmailIsConfirmedError, if user's email is already confirmed;
+        """
+        user = await self._uow.user_repo.get(user_id)
+        if user.email_confirmed:
+            raise EmailIsConfirmedError
 
         code = await self._email_confirmation_code_service.generate(user_id, user.email)
 

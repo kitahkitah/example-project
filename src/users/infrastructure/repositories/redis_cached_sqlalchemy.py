@@ -14,8 +14,6 @@ if TYPE_CHECKING:
     from redis.asyncio import Redis
     from sqlalchemy.ext.asyncio import AsyncSession
 
-    from ...domain.params_spec import UpdateUserChanges
-
 
 class UserRedisDict(TypedDict):
     """User model for Redis."""
@@ -66,7 +64,7 @@ class RedisCachedSQLAlchemyUserRepository(SQLAlchemyUserRepository):
         await self._redis_con.set(key, orjson.dumps(user_dict))
         return user
 
-    async def update(self, user: User, to_update: UpdateUserChanges) -> None:
+    async def update(self, user: User) -> None:
         """Delete user cache. Save the user changes in super().
 
         Raise:
@@ -75,4 +73,4 @@ class RedisCachedSQLAlchemyUserRepository(SQLAlchemyUserRepository):
         key = self.CACHE_KEY_PATTERN.format(user_id=user.id)
         await self._redis_con.delete(key)
 
-        await super().update(user, to_update)
+        await super().update(user)

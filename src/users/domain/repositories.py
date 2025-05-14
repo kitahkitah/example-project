@@ -6,7 +6,6 @@ from shared.errors import NotFoundError as NotFoundError
 
 if TYPE_CHECKING:
     from .models import User, UserId
-    from .params_spec import UpdateUserChanges
 
 
 class UserRepository(Protocol):
@@ -26,7 +25,7 @@ class UserRepository(Protocol):
             - shared.errors.NotFoundError, if the user wasn't found;
         """
 
-    async def update(self, user: User, to_update: UpdateUserChanges) -> None:
+    async def update(self, user: User) -> None:
         """Save the user changes.
 
         Raise:

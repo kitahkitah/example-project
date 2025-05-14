@@ -20,3 +20,10 @@ class EmailIsUsedError(ProjectError):
 
     code = 3
     detail = 'Email is already used'
+
+
+class EmailIsConfirmedError(ProjectError):
+    """Email confirmation error."""
+
+    code = 4
+    detail = 'Email is already confirmed'

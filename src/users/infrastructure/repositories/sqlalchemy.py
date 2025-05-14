@@ -15,8 +15,6 @@ from ...errors import EmailIsUsedError
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 
-    from ...domain.params_spec import UpdateUserChanges
-
 
 class UserSQLAlchemyModel(Base):
     """User model for SQLAlchemy ORM."""
@@ -79,18 +77,22 @@ class SQLAlchemyUserRepository:
             last_name=user.last_name,
         )
 
-    async def update(self, user: User, to_update: UpdateUserChanges) -> None:
+    async def update(self, user: User) -> None:
         """Save the user changes.
 
         Raise:
             - EmailIsUsedError, if the email is already used;
         """
-        if 'email' in to_update:
+        changed_fields = user.get_changed_fields()
+
+        if 'email' in changed_fields:
             await self._check_email_uniqueness(user.email)
 
-        updates = {k: getattr(user, k) for k in to_update}
+        updates = {k: getattr(user, k) for k in changed_fields}
         q = update(UserSQLAlchemyModel).where(UserSQLAlchemyModel.id == user.id).values(**updates)
         await self._session.execute(q)
+
+        user.clear_changed_fields()
 
     async def _check_email_uniqueness(self, email: str) -> None:
         """Check if the email isn't used.
