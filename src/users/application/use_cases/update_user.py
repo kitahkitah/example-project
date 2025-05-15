@@ -32,11 +32,12 @@ class UpdateUserUsecase:
 
     async def execute(self, user_id: UserId, user_data: UpdateUserDTO) -> User:
         """Get the specified user. Update them."""
-        user = await self._uow.user_repo.get(user_id)
+        async with self._uow:
+            user = await self._uow.user_repo.get(user_id)
 
-        for field in user_data.fields_to_update:
-            setattr(user, field, getattr(user_data, field))
+            for field in user_data.fields_to_update:
+                setattr(user, field, getattr(user_data, field))
 
-        await self._uow.user_repo.update(user)
-        self._uow.commit()
+            await self._uow.user_repo.update(user)
+            self._uow.commit()
         return user

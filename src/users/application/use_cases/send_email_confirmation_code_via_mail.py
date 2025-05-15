@@ -34,7 +34,9 @@ class SendEmailConfirmationCodeUsecase:
         Raise:
             - EmailIsConfirmedError, if user's email is already confirmed;
         """
-        user = await self._uow.user_repo.get(user_id)
+        async with self._uow:
+            user = await self._uow.user_repo.get(user_id)
+
         if user.email_confirmed:
             raise EmailIsConfirmedError
 

@@ -15,4 +15,5 @@ class GetUserUsecase:
 
     async def execute(self, user_id: UserId) -> User:
         """Get the specified user."""
-        return await self._uow.user_repo.get(user_id)
+        async with self._uow:
+            return await self._uow.user_repo.get(user_id)

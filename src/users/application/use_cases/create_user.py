@@ -38,6 +38,7 @@ class CreateUserUsecase:
         )
         user = User.create(params)
 
-        await self._uow.user_repo.create(user)
-        self._uow.commit()
+        async with self._uow:
+            await self._uow.user_repo.create(user)
+            self._uow.commit()
         return user
