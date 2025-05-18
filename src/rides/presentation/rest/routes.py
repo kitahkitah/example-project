@@ -2,8 +2,8 @@ from fastapi import APIRouter, status
 
 from auth import UserBearerAuth
 from shared import errors as shared_errs
-from shared.api.idempotency_header import IdempotencyDep
 from shared.infrastructure.sqlalchemy import sessionmaker as db_sessionmaker
+from shared.presentation.idempotency_header import IdempotencyDep
 
 from ...application import use_cases as uc
 from ...domain.models import OwnerId, Ride, RideId
