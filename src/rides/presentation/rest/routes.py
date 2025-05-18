@@ -15,7 +15,9 @@ router = APIRouter()
 
 
 @router.post('', status_code=status.HTTP_201_CREATED, response_model=schemas.CreateRideResponse)
-async def create_ride(body: schemas.CreateRideRequest, user_id: UserBearerAuth, idempotency: IdempotencyDep) -> Ride:
+async def create_ride(
+    body: schemas.CreateRideRequest, user_id: UserBearerAuth, idempotency: IdempotencyDep
+) -> uc.CreateRideReturnDTO:
     """Create a new ride."""
     uow = RideSQLAlchemyCityFakeUnitOfWork(db_sessionmaker)
     create_ride_uc = uc.CreateRideUsecase(uow)

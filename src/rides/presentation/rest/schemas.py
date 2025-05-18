@@ -14,18 +14,17 @@ class PriceBaseSchema(BaseModel):
     value: int
 
 
+class PriceInputSchema(PriceBaseSchema):
+    """An input schema for price."""
+
+    value: Annotated[int, Field(gt=0, lt=10_000_000)]
+
+
 class RouteBaseSchema(BaseModel):
     """A base schema for route."""
 
     city_id_departure: CityId
     city_id_destination: CityId
-    # We can add an approximate arrival time in the response model based on statistics
-
-
-class PriceInputSchema(PriceBaseSchema):
-    """An input schema for price."""
-
-    value: Annotated[int, Field(gt=0, lt=10_000_000)]
 
 
 class RouteInputSchema(RouteBaseSchema):
@@ -39,6 +38,14 @@ class RouteInputSchema(RouteBaseSchema):
             raise ValueError(msg)
 
         return self
+
+
+class RouteOutputSchema(BaseModel):
+    """An output schema for route."""
+
+    city_name_departure: str
+    city_name_destination: str
+    # We can add an approximate arrival time in the response model based on statistics
 
 
 class CreateRideRequest(BaseModel):
@@ -68,7 +75,7 @@ class CreateRideResponse(BaseModel):
     id: RideId
     owner_id: OwnerId
     price: PriceBaseSchema
-    route: RouteBaseSchema
+    route: RouteOutputSchema
     seats_number: int
 
 

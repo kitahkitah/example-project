@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Protocol
 if TYPE_CHECKING:
     from collections.abc import Iterable
 
-    from .models import CityId, Ride, RideId
+    from .models import City, CityId, Ride, RideId
 
 
 class RideRepository(Protocol):
@@ -28,8 +28,8 @@ class RideRepository(Protocol):
 class CityRepository(Protocol):
     """A city repository."""
 
-    async def check_cities(self, ids: Iterable[CityId]) -> None:
-        """Check if specified cities exist.
+    async def list(self, ids: Iterable[CityId]) -> dict[CityId, City]:
+        """Return cities mapping.
 
         Raise:
             - CityNotFoundError, if at least one of specified cities wasn't found;
