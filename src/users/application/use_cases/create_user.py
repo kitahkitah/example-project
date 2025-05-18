@@ -29,7 +29,7 @@ class CreateUserUsecase:
         self._uow = uow
 
     async def execute(self, user_data: CreateUserDTO) -> User:
-        """Create a new user."""
+        """Create a new user. Check email uniqueness."""
         params = CreateUserParams(
             birth_date=user_data.birth_date,
             email=user_data.email,
@@ -39,6 +39,7 @@ class CreateUserUsecase:
         user = User.create(params)
 
         async with self._uow:
+            await self._uow.user_repo.check_email_unique(user.email)
             await self._uow.user_repo.create(user)
             self._uow.commit()
         return user

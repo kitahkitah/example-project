@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from collections.abc import Collection
+    from collections.abc import Iterable
     from datetime import date
 
     from ...domain.models import User, UserId
@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 class UpdateUserDTO:
     """A DTO for a user update."""
 
-    fields_to_update: Collection[str]
+    fields_to_update: Iterable[str]
 
     birth_date: date | None = None
     email: str | None = None
@@ -31,12 +31,15 @@ class UpdateUserUsecase:
         self._uow = uow
 
     async def execute(self, user_id: UserId, user_data: UpdateUserDTO) -> User:
-        """Get the specified user. Update them."""
+        """Get the specified user. Check email uniqueness. Update user."""
         async with self._uow:
             user = await self._uow.user_repo.get(user_id)
 
             for field in user_data.fields_to_update:
                 setattr(user, field, getattr(user_data, field))
+
+            if 'email' in user.get_changed_fields():
+                await self._uow.user_repo.check_email_unique(user.email)
 
             await self._uow.user_repo.update(user)
             self._uow.commit()

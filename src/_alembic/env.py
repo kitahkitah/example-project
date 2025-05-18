@@ -21,6 +21,7 @@ target_metadata = Base.metadata
 
 
 # Add your models here
+from rides import RideSQLAlchemyModel
 from users import UserSQLAlchemyModel
 
 

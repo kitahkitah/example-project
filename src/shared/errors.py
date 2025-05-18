@@ -24,3 +24,10 @@ class NotFoundError(ProjectError):
 
     code = None
     detail = 'Not found'
+
+
+class ForbiddenError(ProjectError):
+    """The action is forbidden."""
+
+    code = None
+    detail = 'Forbidden'

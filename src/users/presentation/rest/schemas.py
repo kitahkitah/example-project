@@ -21,19 +21,8 @@ class CreateUserRequest(BaseModel):
     last_name: Annotated[str, Field(min_length=1, max_length=50)]
 
 
-class CreateUserResponse(BaseModel):
-    """Create user response schema."""
-
-    birth_date: date
-    email: str
-    email_confirmed: bool
-    first_name: str
-    id: UserId
-    last_name: str
-
-
-class GetOwnProfileResponse(BaseModel):
-    """Get own profile response schema."""
+class OwnProfileResponse(BaseModel):
+    """User response schema."""
 
     birth_date: date
     email: str

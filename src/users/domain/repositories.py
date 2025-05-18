@@ -11,12 +11,15 @@ if TYPE_CHECKING:
 class UserRepository(Protocol):
     """A user repository."""
 
-    async def create(self, user: User) -> None:
-        """Create a new user.
+    async def check_email_unique(self, email: str) -> None:
+        """Check if email is unique.
 
         Raise:
             - EmailIsUsedError, if the email is already used;
         """
+
+    async def create(self, user: User) -> None:
+        """Create a new user."""
 
     async def get(self, id: UserId) -> User:
         """Obtain the user.
@@ -26,8 +29,4 @@ class UserRepository(Protocol):
         """
 
     async def update(self, user: User) -> None:
-        """Save the user changes.
-
-        Raise:
-            - EmailIsUsedError, if the email is already used;
-        """
+        """Save the user changes."""

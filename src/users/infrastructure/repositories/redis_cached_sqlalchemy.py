@@ -27,9 +27,9 @@ class UserRedisDict(TypedDict):
 
 
 class RedisCachedSQLAlchemyUserRepository(SQLAlchemyUserRepository):
-    """Derive from SQLAlchemyUserRepository user repository based on redis-om.
+    """Derive from SQLAlchemyUserRepository user repository based on redis cache.
 
-    docs: https://github.com/redis/redis-om-python
+    docs: https://github.com/redis/redis-py
     """
 
     CACHE_KEY_PATTERN = 'users:{user_id}'

@@ -18,7 +18,7 @@ from . import schemas
 router = APIRouter()
 
 
-@router.post('', status_code=status.HTTP_201_CREATED, response_model=schemas.CreateUserResponse)
+@router.post('', status_code=status.HTTP_201_CREATED, response_model=schemas.OwnProfileResponse)
 async def create_user(body: schemas.CreateUserRequest) -> User:
     """Create a new user."""
     uow = UserSQLAlchemyUnitOfWork(common_redis, db_sessionmaker)
@@ -31,7 +31,7 @@ async def create_user(body: schemas.CreateUserRequest) -> User:
         raise shared_errs.APIError(status.HTTP_400_BAD_REQUEST, err.code, err.detail) from None
 
 
-@router.get('/me', response_model=schemas.GetOwnProfileResponse)
+@router.get('/me', response_model=schemas.OwnProfileResponse)
 async def get_own_profile(user_id: UserBearerAuth) -> User:
     """Get the requesting user data."""
     uow = UserSQLAlchemyUnitOfWork(common_redis, db_sessionmaker)
@@ -39,8 +39,8 @@ async def get_own_profile(user_id: UserBearerAuth) -> User:
     return await get_user_uc.execute(user_id)
 
 
-@router.patch('/me', response_model=schemas.GetOwnProfileResponse)
-async def update_user(user_id: UserBearerAuth, body: schemas.UpdateUserRequest) -> User:
+@router.patch('/me', response_model=schemas.OwnProfileResponse)
+async def update_user(user_id: UserBearerAuth, body: schemas.UpdateUserRequest, idempotency: IdempotencyDep) -> User:
     """Update user data."""
     uow = UserSQLAlchemyUnitOfWork(common_redis, db_sessionmaker)
     update_user_uc = uc.UpdateUserUsecase(uow)

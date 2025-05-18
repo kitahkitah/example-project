@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import ORJSONResponse
 
+from rides import router as rides_router
 from shared.infrastructure.config import settings
 from shared.infrastructure.redis import connections as redis_connections
 from users import router as users_router
@@ -39,3 +40,4 @@ app.add_middleware(
 app.add_middleware(GZipMiddleware)
 
 app.include_router(users_router, prefix='/api/v1/users')
+app.include_router(rides_router, prefix='/api/v1/rides')

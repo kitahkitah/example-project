@@ -2,7 +2,8 @@ services:
   app:
     container_name: app
     build:
-      context: ../src/
+      context: ..
+      dockerfile: src/Dockerfile
     restart: always
     depends_on:
       - db
@@ -12,7 +13,8 @@ services:
     env_file:
       - .env
     working_dir: /app
-    command: ["sh", "-c", "alembic upgrade head && uvicorn main:app --host 0.0.0.0 --port 8000"]
+    # --http 2 - in production
+    command: ["sh", "-c", "alembic upgrade head && granian main:app --host 0.0.0.0 --port 8000 --interface asgi --http auto --no-ws"]
 
   db:
     container_name: db

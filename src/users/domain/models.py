@@ -18,11 +18,15 @@ UserId = NewType('UserId', UUID)
 
 
 class User(Entity):
-    """A user."""
+    """A user.
 
-    __slots__ = ('_birth_date', '_email', 'email_confirmed', 'first_name', 'id', 'last_name')
+    Fields 'first_name' and 'last_name' are important for domain logic.
+    Their use can be implemented later for passports verification.
+    """
 
-    def __init__(  # noqa: PLR0913
+    __slots__ = ('_birth_date', '_email', '_id', 'email_confirmed', 'first_name', 'last_name')
+
+    def __init__(
         self,
         *,
         birth_date: date,
@@ -35,7 +39,7 @@ class User(Entity):
     ) -> None:
         self.email_confirmed = email_confirmed
         self.first_name = first_name
-        self.id = id
+        self._id = id
         self.last_name = last_name
 
         if not _for_creating:  # i.e. just initializing, validation not required
@@ -47,6 +51,25 @@ class User(Entity):
             self.email = email
 
         super().__init__()
+
+    @classmethod
+    def create(cls, params: CreateUserParams) -> Self:
+        """Create a new user.
+
+        Email of a new user is always NOT confirmed.
+        """
+        email_confirmed = False
+        id = UserId(uuid4())
+
+        return cls(
+            birth_date=params.birth_date,
+            email=params.email,
+            email_confirmed=email_confirmed,
+            first_name=params.first_name,
+            id=id,
+            last_name=params.last_name,
+            _for_creating=True,
+        )
 
     @property
     def birth_date(self) -> date:
@@ -76,20 +99,7 @@ class User(Entity):
         self._email = value
         self.email_confirmed = False
 
-    @classmethod
-    def create(cls, params: CreateUserParams) -> Self:
-        """Create a new user.
-
-        Email of a new user is always NOT confirmed.
-        """
-        email_confirmed = False
-        id = UserId(uuid4())
-        return cls(
-            birth_date=params.birth_date,
-            email=params.email,
-            email_confirmed=email_confirmed,
-            first_name=params.first_name,
-            id=id,
-            last_name=params.last_name,
-            _for_creating=True,
-        )
+    @property
+    def id(self) -> UserId:
+        """Return id."""
+        return self._id
