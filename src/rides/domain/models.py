@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
+from enum import StrEnum
 from typing import TYPE_CHECKING, NewType
 from uuid import UUID, uuid4
 
@@ -13,9 +14,6 @@ from ..constants import MAX_VEHICLE_SEATS
 
 if TYPE_CHECKING:
     from typing import Self
-
-    from payments import Currency as Currency
-    from payments import PriceVO
 
     from .params_spec import CreateRideParams
 
@@ -39,6 +37,33 @@ class Passenger:
 
     passenger_id: PassengerId
     seats_booked: int
+
+
+class Currency(StrEnum):
+    """Available currencies."""
+
+    DKK_ORE = 'DKK_ore'  # Denmark
+    EUR_CENT = 'EUR_cent'  # EU
+    GBP_PENCE = 'GBP_pence'  # UK
+    PLN_GROSZ = 'PLN_grosz'  # Poland
+    RUB_KOPECK = 'RUB_kopeck'  # Russia
+
+
+@dataclass(frozen=True, slots=True)
+class PriceVO:
+    """Ride departure and destination cities.
+
+    Prices are integers presented in fractional units (cents, pence, etc.).
+    """
+
+    currency: Currency
+    value: int
+
+    def __post_init__(self) -> None:
+        # In fact, it depends on acquirings and currency, and there has to be a mapping,
+        # but for the sake of example, let's leave it as is
+        if self.value < 100:  # noqa: PLR2004
+            raise domain_errs.PriceError(min_value=100)
 
 
 @dataclass(frozen=True, slots=True)

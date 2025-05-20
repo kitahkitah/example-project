@@ -1,4 +1,6 @@
-from fastapi import APIRouter, status
+from typing import Annotated
+
+from fastapi import APIRouter, Query, status
 
 from auth import UserBearerAuth
 from shared import errors as shared_errs
@@ -11,11 +13,30 @@ from ...application import use_cases as uc
 from ...domain.models import OwnerId, Ride, RideId
 from ...errors import ActiveRideNotFoundError
 from ...infrastructure.queries.cached_sqlaclhemy_complex_ride import CachedSQLAlchemyComplexRideQuery
+from ...infrastructure.queries.sqlalchemy_filter_rides import SQLAlchemyFilterRidesQuery
 from ...infrastructure.repositories.city_fake import FakeCityRepository
 from ...infrastructure.uow import RideSQLAlchemyCityFakeUnitOfWork, RideSQLAlchemyUnitOfWork
 from . import schemas
 
 router = APIRouter()
+
+
+@router.get('')
+async def filter_rides(params: Annotated[schemas.FilterRidesParams, Query()]) -> dict:
+    """Filter rides by cities, date and available seats."""
+    params_dto = uc.FilterParamsDTO(
+        city_id_departure=params.city_id_departure,
+        city_id_destination=params.city_id_destination,
+        departure_date=params.departure_date,
+        min_seats_available=params.min_seats_available,
+    )
+
+    async with db_sessionmaker() as db_session:
+        query_handler = SQLAlchemyFilterRidesQuery(db_session)
+        filter_rides_uc = uc.FilterRidesUsecase(query_handler)
+        rides = await filter_rides_uc.execute(params_dto)
+
+    return {'results': rides}
 
 
 @router.post('', status_code=status.HTTP_201_CREATED, response_model=schemas.CreateRideResponse)
@@ -43,8 +64,8 @@ async def get_complex_ride(ride_id: RideId) -> uc.ComplexRideDTO:
     cache = RedisCache(common_redis)
     city_repo = FakeCityRepository()
     async with db_sessionmaker() as db_session:
-        query = CachedSQLAlchemyComplexRideQuery(db_session, cache, city_repo)
-        get_ride_uc = uc.GetComplexRideUsecase(query)
+        query_handler = CachedSQLAlchemyComplexRideQuery(db_session, cache, city_repo)
+        get_ride_uc = uc.GetComplexRideUsecase(query_handler)
         return await get_ride_uc.execute(ride_id)
 
 

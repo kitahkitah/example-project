@@ -1,4 +1,4 @@
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, date, datetime, timedelta
 from typing import Annotated, Self
 
 from pydantic import AwareDatetime, BaseModel, Field, field_validator, model_validator
@@ -112,3 +112,12 @@ class UpdateRideResponse(BaseModel):
     description: str
     price: PriceBaseSchema
     seats_number: int
+
+
+class FilterRidesParams:
+    """Request params."""
+
+    city_id_departure: CityId
+    city_id_destination: CityId
+    departure_date: date
+    min_seats_available: int

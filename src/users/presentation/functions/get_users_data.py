@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, TypedDict
 
 from shared.infrastructure.redis import common as common_redis
 
-from ..repositories.redis_cached_sqlalchemy import RedisCachedSQLAlchemyUserRepository
+from ...infrastructure.repositories.redis_cached_sqlalchemy import RedisCachedSQLAlchemyUserRepository
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
