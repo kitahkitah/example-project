@@ -5,11 +5,14 @@ from typing import TYPE_CHECKING
 
 from shared.errors import ForbiddenError
 
+from ...constants import RIDE_COMPLEX_CACHE_KEY, RIDE_FOR_LISTING_CACHE_KEY
 from ...domain.models import PriceVO, Ride, RideId
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
     from datetime import datetime
+
+    from shared.application.cache import Cache
 
     from ...domain.models import Currency, OwnerId
     from ...domain.uow import RideUnitOfWork
@@ -38,7 +41,8 @@ class UpdateRideDTO:
 class UpdateRideUsecase:
     """A usecase for ride update."""
 
-    def __init__(self, uow: RideUnitOfWork) -> None:
+    def __init__(self, uow: RideUnitOfWork, cache: Cache) -> None:
+        self._cache = cache
         self._uow = uow
 
     async def execute(self, ride_id: RideId, owner_id: OwnerId, ride_data: UpdateRideDTO) -> Ride:
@@ -63,4 +67,10 @@ class UpdateRideUsecase:
 
             await self._uow.ride_repo.update(ride)
             self._uow.commit()
+
+        cache_keys = (
+            RIDE_COMPLEX_CACHE_KEY.format(ride_id=ride_id),
+            RIDE_FOR_LISTING_CACHE_KEY.format(ride_id=ride_id),
+        )
+        await self._cache.delete(*cache_keys)
         return ride

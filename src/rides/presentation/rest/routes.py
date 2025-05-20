@@ -2,12 +2,16 @@ from fastapi import APIRouter, status
 
 from auth import UserBearerAuth
 from shared import errors as shared_errs
+from shared.infrastructure.redis import common as common_redis
+from shared.infrastructure.redis_cache import RedisCache
 from shared.infrastructure.sqlalchemy import sessionmaker as db_sessionmaker
 from shared.presentation.idempotency_header import IdempotencyDep
 
 from ...application import use_cases as uc
 from ...domain.models import OwnerId, Ride, RideId
 from ...errors import ActiveRideNotFoundError
+from ...infrastructure.queries.cached_sqlaclhemy_complex_ride import CachedSQLAlchemyComplexRideQuery
+from ...infrastructure.repositories.city_fake import FakeCityRepository
 from ...infrastructure.uow import RideSQLAlchemyCityFakeUnitOfWork, RideSQLAlchemyUnitOfWork
 from . import schemas
 
@@ -33,13 +37,25 @@ async def create_ride(
         raise shared_errs.APIError(status.HTTP_400_BAD_REQUEST, err.code, err.detail) from None
 
 
+@router.get('/{ride_id}')
+async def get_complex_ride(ride_id: RideId) -> uc.ComplexRideDTO:
+    """Get full ride data along with passengers and cities data."""
+    cache = RedisCache(common_redis)
+    city_repo = FakeCityRepository()
+    async with db_sessionmaker() as db_session:
+        query = CachedSQLAlchemyComplexRideQuery(db_session, cache, city_repo)
+        get_ride_uc = uc.GetComplexRideUsecase(query)
+        return await get_ride_uc.execute(ride_id)
+
+
 @router.patch('/{ride_id}', response_model=schemas.UpdateRideResponse)
 async def update_ride(
     ride_id: RideId, body: schemas.UpdateRideRequest, user_id: UserBearerAuth, idempotency: IdempotencyDep
 ) -> Ride:
     """Update the ride."""
     uow = RideSQLAlchemyUnitOfWork(db_sessionmaker)
-    update_ride_uc = uc.UpdateRideUsecase(uow)
+    cache = RedisCache(common_redis)
+    update_ride_uc = uc.UpdateRideUsecase(uow, cache)
 
     body_dict = body.model_dump(exclude_unset=True)
     ride_data = uc.UpdateRideDTO(fields_to_update=tuple(body_dict.keys()), **body_dict)
@@ -57,7 +73,8 @@ async def update_ride(
 async def cancel_ride(ride_id: RideId, user_id: UserBearerAuth) -> None:
     """Cancel the ride."""
     uow = RideSQLAlchemyUnitOfWork(db_sessionmaker)
-    cancel_ride_uc = uc.CancelRideUsecase(uow)
+    cache = RedisCache(common_redis)
+    cancel_ride_uc = uc.CancelRideUsecase(uow, cache)
 
     try:
         await cancel_ride_uc.execute(ride_id, OwnerId(user_id))

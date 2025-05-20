@@ -28,7 +28,7 @@ class RideRepository(Protocol):
 class CityRepository(Protocol):
     """A city repository."""
 
-    async def list(self, ids: Iterable[CityId]) -> dict[CityId, City]:
+    def list(self, ids: Iterable[CityId]) -> dict[CityId, City]:
         """Return cities mapping.
 
         Raise:

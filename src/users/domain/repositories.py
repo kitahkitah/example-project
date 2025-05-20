@@ -5,6 +5,8 @@ from typing import TYPE_CHECKING, Protocol
 from shared.errors import NotFoundError as NotFoundError
 
 if TYPE_CHECKING:
+    from collections.abc import Iterable
+
     from .models import User, UserId
 
 
@@ -27,6 +29,9 @@ class UserRepository(Protocol):
         Raise:
             - shared.errors.NotFoundError, if the user wasn't found;
         """
+
+    async def list(self, ids: Iterable[UserId]) -> dict[UserId, User]:
+        """Return users data."""
 
     async def update(self, user: User) -> None:
         """Save the user changes."""

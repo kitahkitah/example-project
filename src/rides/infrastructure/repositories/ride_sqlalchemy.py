@@ -13,10 +13,9 @@ from ...errors import ActiveRideNotFoundError
 class RideSQLAlchemyModel(Base):
     """Ride model for SQLAlchemy ORM."""
 
-    _created_at: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True))  # used for presentation
-    _has_available_seats: Mapped[bool]  # used for faster filtration
     city_id_departure: Mapped[domain_models.CityId]
     city_id_destination: Mapped[domain_models.CityId]
+    created_at: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True))  # used for presentation
     departure_time: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True))
     description: Mapped[str | None]
     id: Mapped[domain_models.RideId] = mapped_column(primary_key=True, index=True)
@@ -25,6 +24,7 @@ class RideSQLAlchemyModel(Base):
     passengers: Mapped[list['Passenger']] = relationship(back_populates='ride', passive_deletes=True)
     price_currency: Mapped[domain_models.Currency]
     price_value: Mapped[int]
+    seats_available: Mapped[int] = mapped_column(SmallInteger)  # used for faster filtration and presentation
     seats_number: Mapped[int] = mapped_column(SmallInteger)
 
     __tablename__ = 'rides'
@@ -58,10 +58,9 @@ class SQLAlchemyRideRepository:
     async def create(self, ride: domain_models.Ride) -> None:
         """Create a new ride."""
         db_ride = RideSQLAlchemyModel(
-            _created_at=datetime.now(UTC),
-            _has_available_seats=True,
             city_id_departure=ride.route.city_id_departure,
             city_id_destination=ride.route.city_id_destination,
+            created_at=datetime.now(UTC),
             departure_time=ride.departure_time,
             description=ride.description,
             id=ride.id,
@@ -70,6 +69,7 @@ class SQLAlchemyRideRepository:
             passengers=ride.passengers,
             price_currency=ride.price.currency,
             price_value=ride.price.value,
+            seats_available=ride.seats_available,
             seats_number=ride.seats_number,
         )
         self._session.add(db_ride)
@@ -86,6 +86,7 @@ class SQLAlchemyRideRepository:
             .options(joinedload(RideSQLAlchemyModel.passengers, innerjoin=True))
             .where(
                 RideSQLAlchemyModel.id == id,
+                RideSQLAlchemyModel.seats_available > 0,
                 RideSQLAlchemyModel.is_cancelled == False,
                 RideSQLAlchemyModel.departure_time < datetime.now(UTC),
             )
@@ -112,7 +113,12 @@ class SQLAlchemyRideRepository:
 
     async def update(self, ride: domain_models.Ride) -> None:
         """Save the ride changes."""
-        updates = {k: getattr(ride, k) for k in ride.get_changed_fields()}
+        changed_fields = ride.get_changed_fields()
+        updates = {k: getattr(ride, k) for k in changed_fields}
+
+        if 'seats_number' in changed_fields:
+            updates['_seats_available'] = ride.seats_available
+
         q = update(RideSQLAlchemyModel).where(RideSQLAlchemyModel.id == ride.id).values(**updates)
         await self._session.execute(q)
 

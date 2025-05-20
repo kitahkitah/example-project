@@ -20,7 +20,7 @@ class FakeCityRepository:
             City(id=CityId(UUID('00000000-0000-0000-0000-000000000002')), name='City 17'),
         ]
 
-    async def list(self, ids: Iterable[CityId]) -> dict[CityId, City]:
+    def list(self, ids: Iterable[CityId]) -> dict[CityId, City]:
         """Return cities mapping.
 
         Raise:

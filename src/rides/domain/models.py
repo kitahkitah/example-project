@@ -33,16 +33,12 @@ class City:
     name: str
 
 
-@dataclass(slots=True)
+@dataclass(frozen=True, slots=True)
 class Passenger:
     """A passenger of a ride."""
 
     passenger_id: PassengerId
     seats_booked: int
-
-    def book_additional_seats(self, additional_seats: int) -> None:
-        """Book additional seats."""
-        self.seats_booked += additional_seats
 
 
 @dataclass(frozen=True, slots=True)
@@ -247,11 +243,6 @@ class Ride(Entity):
         self._seats_number = value
 
     def add_passenger(self, passenger: Passenger) -> None:
-        """."""
-        # TODO(<Nikita Natalenko>): booking
-        self._changed_fields.add('passengers')
-
-    def book_additional_seats_for_passenger(self, passenger_id: PassengerId, additional_seats: int) -> None:
         """."""
         # TODO(<Nikita Natalenko>): booking
         self._changed_fields.add('passengers')

@@ -84,7 +84,7 @@ class CreateRideUsecase:
         ride = Ride.create(params)
 
         async with self._uow:
-            cities_data = await self._uow.city_repo.list([ride.route.city_id_departure, ride.route.city_id_destination])
+            cities_data = self._uow.city_repo.list([ride.route.city_id_departure, ride.route.city_id_destination])
             await self._uow.ride_repo.create(ride)
             self._uow.commit()
 

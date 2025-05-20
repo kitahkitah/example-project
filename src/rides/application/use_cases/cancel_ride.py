@@ -4,7 +4,11 @@ from typing import TYPE_CHECKING
 
 from shared.errors import ForbiddenError
 
+from ...constants import RIDE_COMPLEX_CACHE_KEY, RIDE_FOR_LISTING_CACHE_KEY
+
 if TYPE_CHECKING:
+    from shared.application.cache import Cache
+
     from ...domain.models import OwnerId, Ride, RideId
     from ...domain.uow import RideUnitOfWork
 
@@ -12,7 +16,8 @@ if TYPE_CHECKING:
 class CancelRideUsecase:
     """A usecase for ride cancelling."""
 
-    def __init__(self, uow: RideUnitOfWork) -> None:
+    def __init__(self, uow: RideUnitOfWork, cache: Cache) -> None:
+        self._cache = cache
         self._uow = uow
 
     async def execute(self, ride_id: RideId, owner_id: OwnerId) -> Ride:
@@ -31,4 +36,10 @@ class CancelRideUsecase:
 
             await self._uow.ride_repo.update(ride)
             self._uow.commit()
+
+        cache_keys = (
+            RIDE_COMPLEX_CACHE_KEY.format(ride_id=ride_id),
+            RIDE_FOR_LISTING_CACHE_KEY.format(ride_id=ride_id),
+        )
+        await self._cache.delete(*cache_keys)
         return ride

@@ -1,3 +1,4 @@
+from collections.abc import Iterable
 from datetime import date
 
 from sqlalchemy import exists, select, update
@@ -74,6 +75,23 @@ class SQLAlchemyUserRepository:
             id=user.id,
             last_name=user.last_name,
         )
+
+    async def list(self, ids: Iterable[UserId]) -> dict[UserId, User]:
+        """Return users data."""
+        q = select(UserSQLAlchemyModel).where(UserSQLAlchemyModel.id.in_(ids))
+        users = await self._session.scalars(q)
+
+        return {
+            user.id: User(
+                birth_date=user.birth_date,
+                email=user.email,
+                email_confirmed=user.email_confirmed,
+                first_name=user.first_name,
+                id=user.id,
+                last_name=user.last_name,
+            )
+            for user in users
+        }
 
     async def update(self, user: User) -> None:
         """Save the user changes."""
