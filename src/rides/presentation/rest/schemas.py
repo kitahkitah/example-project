@@ -121,3 +121,9 @@ class FilterRidesParams:
     city_id_destination: CityId
     departure_date: date
     min_seats_available: int
+
+
+class BookRideRequest(BaseModel):
+    """Book ride schema."""
+
+    seats_booked: int

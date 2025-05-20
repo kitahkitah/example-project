@@ -1,3 +1,4 @@
+from .book_ride import BookRideUsecase as BookRideUsecase
 from .cancel_ride import CancelRideUsecase as CancelRideUsecase
 from .create_ride import CreateRideDTO as CreateRideDTO
 from .create_ride import CreateRideReturnDTO as CreateRideReturnDTO
@@ -8,5 +9,6 @@ from .filter_rides import FilterParamsDTO as FilterParamsDTO
 from .filter_rides import FilterRidesUsecase as FilterRidesUsecase
 from .get_complex_ride import ComplexRideDTO as ComplexRideDTO
 from .get_complex_ride import GetComplexRideUsecase as GetComplexRideUsecase
+from .leave_ride import LeaveRideUsecase as LeaveRideUsecase
 from .update_ride import UpdateRideDTO as UpdateRideDTO
 from .update_ride import UpdateRideUsecase as UpdateRideUsecase

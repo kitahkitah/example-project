@@ -10,7 +10,7 @@ from shared.infrastructure.sqlalchemy import sessionmaker as db_sessionmaker
 from shared.presentation.idempotency_header import IdempotencyDep
 
 from ...application import use_cases as uc
-from ...domain.models import OwnerId, Ride, RideId
+from ...domain.models import OwnerId, PassengerId, Ride, RideId
 from ...errors import ActiveRideNotFoundError
 from ...infrastructure.queries.cached_sqlaclhemy_complex_ride import CachedSQLAlchemyComplexRideQuery
 from ...infrastructure.queries.sqlalchemy_filter_rides import SQLAlchemyFilterRidesQuery
@@ -90,6 +90,23 @@ async def update_ride(
         raise shared_errs.APIError(status.HTTP_400_BAD_REQUEST, err.code, err.detail) from None
 
 
+@router.post('/{ride_id}/book', status_code=status.HTTP_204_NO_CONTENT, response_model=None)
+async def book_ride(
+    ride_id: RideId, body: schemas.BookRideRequest, user_id: UserBearerAuth, idempotency: IdempotencyDep
+) -> None:
+    """Book the ride."""
+    uow = RideSQLAlchemyUnitOfWork(db_sessionmaker)
+    cache = RedisCache(common_redis)
+    book_ride_uc = uc.BookRideUsecase(uow, cache)
+
+    try:
+        await book_ride_uc.execute(ride_id, PassengerId(user_id), body.seats_booked)
+    except ActiveRideNotFoundError as err:
+        raise shared_errs.APIError(status.HTTP_404_NOT_FOUND, err.code, err.detail) from None
+    except shared_errs.ProjectError as err:
+        raise shared_errs.APIError(status.HTTP_400_BAD_REQUEST, err.code, err.detail) from None
+
+
 @router.post('/{ride_id}/cancel', status_code=status.HTTP_204_NO_CONTENT, response_model=None)
 async def cancel_ride(ride_id: RideId, user_id: UserBearerAuth) -> None:
     """Cancel the ride."""
@@ -103,5 +120,20 @@ async def cancel_ride(ride_id: RideId, user_id: UserBearerAuth) -> None:
         raise shared_errs.APIError(status.HTTP_404_NOT_FOUND, err.code, err.detail) from None
     except shared_errs.ForbiddenError as err:
         raise shared_errs.APIError(status.HTTP_403_FORBIDDEN, err.code, err.detail) from None
+    except shared_errs.ProjectError as err:
+        raise shared_errs.APIError(status.HTTP_400_BAD_REQUEST, err.code, err.detail) from None
+
+
+@router.post('/{ride_id}/leave', status_code=status.HTTP_204_NO_CONTENT, response_model=None)
+async def leave_ride(ride_id: RideId, user_id: UserBearerAuth, idempotency: IdempotencyDep) -> None:
+    """Leave the ride."""
+    uow = RideSQLAlchemyUnitOfWork(db_sessionmaker)
+    cache = RedisCache(common_redis)
+    leave_ride_uc = uc.LeaveRideUsecase(uow, cache)
+
+    try:
+        await leave_ride_uc.execute(ride_id, PassengerId(user_id))
+    except ActiveRideNotFoundError as err:
+        raise shared_errs.APIError(status.HTTP_404_NOT_FOUND, err.code, err.detail) from None
     except shared_errs.ProjectError as err:
         raise shared_errs.APIError(status.HTTP_400_BAD_REQUEST, err.code, err.detail) from None

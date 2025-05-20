@@ -1,6 +1,8 @@
+from contextlib import suppress
 from datetime import UTC, datetime
 
-from sqlalchemy import TIMESTAMP, ForeignKey, Index, SmallInteger, select, update
+from sqlalchemy import TIMESTAMP, ForeignKey, Index, SmallInteger, delete, select, update
+from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, joinedload, mapped_column, relationship
 
@@ -21,7 +23,7 @@ class RideSQLAlchemyModel(Base):
     id: Mapped[domain_models.RideId] = mapped_column(primary_key=True, index=True)
     is_cancelled: Mapped[bool]
     owner_id: Mapped[domain_models.OwnerId]
-    passengers: Mapped[list['Passenger']] = relationship(back_populates='ride', passive_deletes=True)
+    passengers: Mapped[list['PassengerSQLAlchemyModel']] = relationship(back_populates='ride', passive_deletes=True)
     price_currency: Mapped[domain_models.Currency]
     price_value: Mapped[int]
     seats_available: Mapped[int] = mapped_column(SmallInteger)  # used for faster filtration and presentation
@@ -33,7 +35,7 @@ class RideSQLAlchemyModel(Base):
     )
 
 
-class Passenger(Base):
+class PassengerSQLAlchemyModel(Base):
     """Passenger model for SQLAlchemy ORM."""
 
     id: Mapped[domain_models.PassengerId] = mapped_column(primary_key=True, index=True)
@@ -96,7 +98,7 @@ class SQLAlchemyRideRepository:
         if not ride:
             raise ActiveRideNotFoundError
 
-        passengers = [domain_models.Passenger(passenger_id=p.id, seats_booked=p.seats_booked) for p in ride.passengers]
+        passengers = [domain_models.Passenger(id=p.id, seats_booked=p.seats_booked) for p in ride.passengers]
         return domain_models.Ride(
             route=domain_models.RouteVO(
                 city_id_departure=ride.city_id_departure, city_id_destination=ride.city_id_destination
@@ -114,10 +116,33 @@ class SQLAlchemyRideRepository:
     async def update(self, ride: domain_models.Ride) -> None:
         """Save the ride changes."""
         changed_fields = ride.get_changed_fields()
-        updates = {k: getattr(ride, k) for k in changed_fields}
+        updates = {}
 
-        if 'seats_number' in changed_fields:
+        with suppress(KeyError):
+            changed_fields.remove('passengers_added')
             updates['_seats_available'] = ride.seats_available
+
+            insert_q = insert(PassengerSQLAlchemyModel).values(
+                [{'id': p.id, 'ride_id': ride.id, 'seats_booked': p.seats_booked} for p in ride.passengers]
+            )
+            insert_q = insert_q.on_conflict_do_nothing(index_elements=(PassengerSQLAlchemyModel.id,))
+            await self._session.execute(insert_q)
+
+        with suppress(KeyError):
+            changed_fields.remove('passengers_removed')
+            updates['_seats_available'] = ride.seats_available
+
+            passenger_ids = [p.id for p in ride.passengers]
+            delete_q = delete(PassengerSQLAlchemyModel).where(
+                PassengerSQLAlchemyModel.ride_id == ride.id, PassengerSQLAlchemyModel.id.not_in(passenger_ids)
+            )
+            await self._session.execute(delete_q)
+
+        with suppress(KeyError):
+            changed_fields.remove('seats_number')
+            updates['_seats_available'] = ride.seats_available
+
+        updates.update({k: getattr(ride, k) for k in changed_fields})
 
         q = update(RideSQLAlchemyModel).where(RideSQLAlchemyModel.id == ride.id).values(**updates)
         await self._session.execute(q)

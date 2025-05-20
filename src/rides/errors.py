@@ -45,3 +45,31 @@ class PriceError(ProjectError):
         self.detail = f'The price in this currency must be at least {min_value} units'
 
         super().__init__()
+
+
+class UserAlreadyIsPassengerError(ProjectError):
+    """Can't book ride twice."""
+
+    code = None
+    detail = 'User is already a passenger of this ride'
+
+
+class UserIsntPassengerError(ProjectError):
+    """Can't leave the ride that isn't booked."""
+
+    code = None
+    detail = "User isn't a passenger of this ride"
+
+
+class RideIsFullError(ProjectError):
+    """No seats available."""
+
+    code = None
+    detail = 'The ride is full'
+
+
+class SeatsBookedError(ProjectError):
+    """Incorrect value."""
+
+    code = None
+    detail = 'Seats must be >= 1'

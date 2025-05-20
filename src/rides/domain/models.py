@@ -35,8 +35,12 @@ class City:
 class Passenger:
     """A passenger of a ride."""
 
-    passenger_id: PassengerId
+    id: PassengerId
     seats_booked: int
+
+    def __post_init__(self) -> None:
+        if self.seats_booked <= 0:
+            raise domain_errs.SeatsBookedError
 
 
 class Currency(StrEnum):
@@ -268,9 +272,17 @@ class Ride(Entity):
         self._seats_number = value
 
     def add_passenger(self, passenger: Passenger) -> None:
-        """."""
-        # TODO(<Nikita Natalenko>): booking
-        self._changed_fields.add('passengers')
+        """Add the passenger to the ride."""
+        if passenger.seats_booked > self.seats_available:
+            raise domain_errs.RideIsFullError
+
+        for p in self._passengers:
+            if p.id == passenger.id:
+                raise domain_errs.UserAlreadyIsPassengerError
+
+        self._passengers.append(passenger)
+
+        self._changed_fields.add('passengers_added')
 
     def cancel(self) -> None:
         """Cancel the ride."""
@@ -280,7 +292,13 @@ class Ride(Entity):
         self._is_cancelled = True
         self._changed_fields.add('is_cancelled')
 
-    def remove_passenger(self, passenger: Passenger) -> None:
-        """."""
-        # TODO(<Nikita Natalenko>): booking
-        self._changed_fields.add('passengers')
+    def remove_passenger(self, id: PassengerId) -> None:
+        """Remove the passenger from the ride."""
+        for idx, p in enumerate(self._passengers):
+            if p.id == id:
+                del self._passengers[idx]
+                break
+        else:
+            raise domain_errs.UserIsntPassengerError
+
+        self._changed_fields.add('passengers_removed')
