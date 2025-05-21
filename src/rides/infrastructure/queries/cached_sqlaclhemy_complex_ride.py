@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import datetime
 from typing import TYPE_CHECKING, TypedDict
 from uuid import UUID
 
@@ -17,8 +18,6 @@ from ...domain.models import CityId, Currency, OwnerId, PassengerId, RideId, Use
 from ..repositories.ride_sqlalchemy import RideSQLAlchemyModel
 
 if TYPE_CHECKING:
-    from datetime import datetime
-
     from sqlalchemy.ext.asyncio import AsyncSession
 
     from shared.application.cache import Cache
@@ -81,11 +80,11 @@ class CachedSQLAlchemyComplexRideQuery:
         """
         ride_data = await self._get_ride(ride_id)
 
-        cities_data = self._city_repo.list(
-            [ride_data['route']['city_id_departure'], ride_data['route']['city_id_destination']]
-        )
-        ride_data['route']['city_name_departure'] = cities_data[ride_data['city_id_departure']].name
-        ride_data['route']['city_name_destination'] = cities_data[ride_data['city_id_destination']].name
+        city_id_departure = ride_data['route']['city_id_departure']
+        city_id_destination = ride_data['route']['city_id_destination']
+        cities_data = self._city_repo.list([city_id_departure, city_id_destination])
+        ride_data['route']['city_name_departure'] = cities_data[city_id_departure].name
+        ride_data['route']['city_name_destination'] = cities_data[city_id_destination].name
 
         passengers_data = await get_users_data([p['id'] for p in ride_data['passengers']], self._db_session)
         for p in ride_data['passengers']:
@@ -99,20 +98,25 @@ class CachedSQLAlchemyComplexRideQuery:
         if cached_data := await self._cache.get(cache_key):
             cached_ride_dict = orjson.loads(cached_data)
 
+            cached_ride_dict['created_at'] = datetime.fromisoformat(cached_ride_dict['created_at'])
+            cached_ride_dict['departure_time'] = datetime.fromisoformat(cached_ride_dict['departure_time'])
             cached_ride_dict['id'] = RideId(UUID(cached_ride_dict['id']))
             cached_ride_dict['owner_id'] = OwnerId(UserId(UUID(cached_ride_dict['owner_id'])))
             for p in cached_ride_dict['passengers']:
                 p['id'] = PassengerId(UserId(UUID(p['id'])))
-            p['price']['currency'] = Currency(p['price']['currency'])
-            p['route']['city_id_departure'] = CityId(p['route']['city_id_departure'])
-            p['route']['city_id_destination'] = CityId(p['route']['city_id_destination'])
+            cached_ride_dict['price']['currency'] = Currency(cached_ride_dict['price']['currency'])
+            cached_ride_dict['route']['city_id_departure'] = CityId(
+                UUID(cached_ride_dict['route']['city_id_departure'])
+            )
+            cached_ride_dict['route']['city_id_destination'] = CityId(
+                UUID(cached_ride_dict['route']['city_id_destination'])
+            )
             return cached_ride_dict
 
         q = (
             select(RideSQLAlchemyModel)
-            .join(RideSQLAlchemyModel.passengers)
-            .options(joinedload(RideSQLAlchemyModel.passengers, innerjoin=True))
-            .where(RideSQLAlchemyModel.id == id)
+            .options(joinedload(RideSQLAlchemyModel.passengers))
+            .where(RideSQLAlchemyModel.id == ride_id)
         )
         ride = await self._db_session.scalar(q)
 

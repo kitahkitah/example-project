@@ -3,6 +3,7 @@ from uuid import UUID
 
 from fastapi import Depends, Header, HTTPException, status
 
+from ..infrastructure.config import settings
 from ..infrastructure.redis import common as redis_connection
 
 CACHE_KEY_PATTERN = 'idempotency:{key}'
@@ -11,6 +12,9 @@ IDEMPOTENCY_TIMEOUT = 60  # 1 min
 
 async def check_idempotency(idempotency_key: Annotated[UUID, Header()]) -> None:
     """Validate user bearer token through graphql service."""
+    if settings.DEBUG:
+        return
+
     key = CACHE_KEY_PATTERN.format(key=idempotency_key)
     was_set = await redis_connection.set(key, 1, IDEMPOTENCY_TIMEOUT, nx=True)
 

@@ -1,12 +1,8 @@
-from __future__ import annotations
-
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Protocol
+from datetime import datetime
+from typing import Protocol
 
-if TYPE_CHECKING:
-    from datetime import datetime
-
-    from ...domain.models import CityId, Currency, OwnerId, PassengerId, RideId
+from ...domain.models import CityId, Currency, OwnerId, PassengerId, RideId
 
 
 @dataclass(frozen=True, slots=True)

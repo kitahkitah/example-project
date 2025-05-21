@@ -37,6 +37,7 @@ class SQLAlchemyFilterRidesQuery:
             Model.city_id_destination == params.city_id_destination,
             Model.departure_time >= from_,
             Model.departure_time < to,
+            Model.is_cancelled == False,
             Model.seats_available >= params.min_seats_available,
         )
         rides = (await self._db_session.execute(q)).all()

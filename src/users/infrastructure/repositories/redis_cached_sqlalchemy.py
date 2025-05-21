@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import date
 from typing import TYPE_CHECKING, TypedDict
 from uuid import UUID
 
@@ -10,7 +11,6 @@ from .sqlalchemy import SQLAlchemyUserRepository
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
-    from datetime import date
 
     from redis.asyncio import Redis
     from sqlalchemy.ext.asyncio import AsyncSession
@@ -51,6 +51,7 @@ class RedisCachedSQLAlchemyUserRepository(SQLAlchemyUserRepository):
         if cached_data := await self._redis_con.get(key):
             user_dict = orjson.loads(cached_data)
             user_dict['id'] = UserId(UUID(user_dict.pop('id')))
+            user_dict['birth_date'] = date.fromisoformat(user_dict['birth_date'])
             return User(**user_dict)
 
         user = await super().get(id)
@@ -76,7 +77,8 @@ class RedisCachedSQLAlchemyUserRepository(SQLAlchemyUserRepository):
         for id_, user_data in zip(ids, cached_data, strict=False):
             if user_data:
                 user_dict = orjson.loads(user_data)
-                user_dict['id'] = UserId(UUID(user_dict.pop('id')))
+                user_dict['id'] = UserId(UUID(user_dict['id']))
+                user_dict['birth_date'] = date.fromisoformat(user_dict['birth_date'])
                 users_data[id_] = User(**user_dict)
             else:
                 non_cached_ids.append(id_)

@@ -1,10 +1,10 @@
-from datetime import UTC, date, datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from typing import Annotated, Self
 
-from pydantic import AwareDatetime, BaseModel, Field, field_validator, model_validator
+from pydantic import AwareDatetime, BaseModel, Field, FutureDate, field_validator, model_validator
 
 from ...constants import MAX_VEHICLE_SEATS
-from ...domain.models import CityId, Currency, OwnerId, RideId
+from ...domain.models import CityId, Currency
 
 
 class PriceBaseSchema(BaseModel):
@@ -40,14 +40,6 @@ class RouteInputSchema(RouteBaseSchema):
         return self
 
 
-class RouteOutputSchema(BaseModel):
-    """An output schema for route."""
-
-    city_name_departure: str
-    city_name_destination: str
-    # We can add an approximate arrival time in the response model based on statistics
-
-
 class CreateRideRequest(BaseModel):
     """Create user request schema."""
 
@@ -65,18 +57,6 @@ class CreateRideRequest(BaseModel):
             msg = 'Departure time must be at least an hour later than the current time'
             raise ValueError(msg)
         return value
-
-
-class CreateRideResponse(BaseModel):
-    """Create ride response schema."""
-
-    departure_time: datetime
-    description: str
-    id: RideId
-    owner_id: OwnerId
-    price: PriceBaseSchema
-    route: RouteOutputSchema
-    seats_number: int
 
 
 class UpdateRideRequest(BaseModel):
@@ -114,13 +94,13 @@ class UpdateRideResponse(BaseModel):
     seats_number: int
 
 
-class FilterRidesParams:
+class FilterRidesParams(BaseModel):
     """Request params."""
 
     city_id_departure: CityId
     city_id_destination: CityId
-    departure_date: date
-    min_seats_available: int
+    departure_date: FutureDate
+    min_seats_available: Annotated[int, Field(ge=1, le=MAX_VEHICLE_SEATS)]
 
 
 class BookRideRequest(BaseModel):

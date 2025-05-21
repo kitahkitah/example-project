@@ -7,7 +7,6 @@ from .create_ride import PriceDTO as PriceDTO
 from .create_ride import RouteDTO as RouteDTO
 from .filter_rides import FilterParamsDTO as FilterParamsDTO
 from .filter_rides import FilterRidesUsecase as FilterRidesUsecase
-from .get_complex_ride import ComplexRideDTO as ComplexRideDTO
 from .get_complex_ride import GetComplexRideUsecase as GetComplexRideUsecase
 from .leave_ride import LeaveRideUsecase as LeaveRideUsecase
 from .update_ride import UpdateRideDTO as UpdateRideDTO

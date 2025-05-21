@@ -1,4 +1,4 @@
-"""add_user
+"""users
 
 Revision ID: 2030fbc3fe48
 Revises: 

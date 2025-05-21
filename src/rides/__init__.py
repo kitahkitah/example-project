@@ -1,3 +1,3 @@
-from .presentation.rest.routes import router
+from .infrastructure.repositories.ride_sqlalchemy import RideSQLAlchemyModel
 
-__all__ = ['router']
+__all__ = ['RideSQLAlchemyModel']

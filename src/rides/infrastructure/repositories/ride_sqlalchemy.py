@@ -39,7 +39,7 @@ class PassengerSQLAlchemyModel(Base):
     """Passenger model for SQLAlchemy ORM."""
 
     id: Mapped[domain_models.PassengerId] = mapped_column(primary_key=True, index=True)
-    ride: Mapped[domain_models.Ride] = relationship(back_populates='passengers')
+    ride: Mapped[RideSQLAlchemyModel] = relationship(back_populates='passengers')
     ride_id: Mapped[domain_models.RideId] = mapped_column(
         ForeignKey('rides.id', ondelete='CASCADE'), primary_key=True, index=True
     )
@@ -84,13 +84,11 @@ class SQLAlchemyRideRepository:
         """
         q = (
             select(RideSQLAlchemyModel)
-            .join(RideSQLAlchemyModel.passengers)
-            .options(joinedload(RideSQLAlchemyModel.passengers, innerjoin=True))
+            .options(joinedload(RideSQLAlchemyModel.passengers))
             .where(
                 RideSQLAlchemyModel.id == id,
-                RideSQLAlchemyModel.seats_available > 0,
                 RideSQLAlchemyModel.is_cancelled == False,
-                RideSQLAlchemyModel.departure_time < datetime.now(UTC),
+                RideSQLAlchemyModel.departure_time > datetime.now(UTC),
             )
         )
         ride = await self._session.scalar(q)
@@ -120,17 +118,19 @@ class SQLAlchemyRideRepository:
 
         with suppress(KeyError):
             changed_fields.remove('passengers_added')
-            updates['_seats_available'] = ride.seats_available
+            updates['seats_available'] = ride.seats_available
 
             insert_q = insert(PassengerSQLAlchemyModel).values(
                 [{'id': p.id, 'ride_id': ride.id, 'seats_booked': p.seats_booked} for p in ride.passengers]
             )
-            insert_q = insert_q.on_conflict_do_nothing(index_elements=(PassengerSQLAlchemyModel.id,))
+            insert_q = insert_q.on_conflict_do_nothing(
+                index_elements=(PassengerSQLAlchemyModel.id, PassengerSQLAlchemyModel.ride_id)
+            )
             await self._session.execute(insert_q)
 
         with suppress(KeyError):
             changed_fields.remove('passengers_removed')
-            updates['_seats_available'] = ride.seats_available
+            updates['seats_available'] = ride.seats_available
 
             passenger_ids = [p.id for p in ride.passengers]
             delete_q = delete(PassengerSQLAlchemyModel).where(
@@ -140,7 +140,7 @@ class SQLAlchemyRideRepository:
 
         with suppress(KeyError):
             changed_fields.remove('seats_number')
-            updates['_seats_available'] = ride.seats_available
+            updates['seats_available'] = ride.seats_available
 
         updates.update({k: getattr(ride, k) for k in changed_fields})
 

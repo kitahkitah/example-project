@@ -276,6 +276,9 @@ class Ride(Entity):
         if passenger.seats_booked > self.seats_available:
             raise domain_errs.RideIsFullError
 
+        if self.owner_id == passenger.id:
+            raise domain_errs.OwnerCantBePassengerError
+
         for p in self._passengers:
             if p.id == passenger.id:
                 raise domain_errs.UserAlreadyIsPassengerError

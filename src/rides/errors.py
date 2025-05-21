@@ -54,6 +54,13 @@ class UserAlreadyIsPassengerError(ProjectError):
     detail = 'User is already a passenger of this ride'
 
 
+class OwnerCantBePassengerError(ProjectError):
+    """Owner can't book its own rides."""
+
+    code = None
+    detail = "The owner can't be a passenger"
+
+
 class UserIsntPassengerError(ProjectError):
     """Can't leave the ride that isn't booked."""
 

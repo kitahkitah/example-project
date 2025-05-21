@@ -6,10 +6,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import ORJSONResponse
 
-from rides import router as rides_router
+from rides.presentation.rest.routes import router as rides_router
 from shared.infrastructure.config import settings
 from shared.infrastructure.redis import connections as redis_connections
-from users import router as users_router
+from users.presentation.rest.routes import router as users_router
 
 
 @asynccontextmanager

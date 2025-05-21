@@ -12,7 +12,7 @@ from shared.presentation.idempotency_header import IdempotencyDep
 from ...application import use_cases as uc
 from ...domain.models import OwnerId, PassengerId, Ride, RideId
 from ...errors import ActiveRideNotFoundError
-from ...infrastructure.queries.cached_sqlaclhemy_complex_ride import CachedSQLAlchemyComplexRideQuery
+from ...infrastructure.queries.cached_sqlaclhemy_complex_ride import CachedSQLAlchemyComplexRideQuery, ComplexRideDTO
 from ...infrastructure.queries.sqlalchemy_filter_rides import SQLAlchemyFilterRidesQuery
 from ...infrastructure.repositories.city_fake import FakeCityRepository
 from ...infrastructure.uow import RideSQLAlchemyCityFakeUnitOfWork, RideSQLAlchemyUnitOfWork
@@ -39,7 +39,7 @@ async def filter_rides(params: Annotated[schemas.FilterRidesParams, Query()]) ->
     return {'results': rides}
 
 
-@router.post('', status_code=status.HTTP_201_CREATED, response_model=schemas.CreateRideResponse)
+@router.post('', status_code=status.HTTP_201_CREATED)
 async def create_ride(
     body: schemas.CreateRideRequest, user_id: UserBearerAuth, idempotency: IdempotencyDep
 ) -> uc.CreateRideReturnDTO:
@@ -59,14 +59,18 @@ async def create_ride(
 
 
 @router.get('/{ride_id}')
-async def get_complex_ride(ride_id: RideId) -> uc.ComplexRideDTO:
+async def get_complex_ride(ride_id: RideId) -> ComplexRideDTO:
     """Get full ride data along with passengers and cities data."""
     cache = RedisCache(common_redis)
     city_repo = FakeCityRepository()
     async with db_sessionmaker() as db_session:
         query_handler = CachedSQLAlchemyComplexRideQuery(db_session, cache, city_repo)
         get_ride_uc = uc.GetComplexRideUsecase(query_handler)
-        return await get_ride_uc.execute(ride_id)
+
+        try:
+            return await get_ride_uc.execute(ride_id)
+        except shared_errs.NotFoundError as err:
+            raise shared_errs.APIError(status.HTTP_404_NOT_FOUND, err.code, err.detail) from None
 
 
 @router.patch('/{ride_id}', response_model=schemas.UpdateRideResponse)

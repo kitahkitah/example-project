@@ -1,16 +1,9 @@
-from __future__ import annotations
-
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
+from datetime import datetime
 
-from ...domain.models import PriceVO, Ride, RouteVO
+from ...domain.models import CityId, Currency, OwnerId, PriceVO, Ride, RideId, RouteVO
 from ...domain.params_spec import CreateRideParams
-
-if TYPE_CHECKING:
-    from datetime import datetime
-
-    from ...domain.models import CityId, Currency, OwnerId, RideId
-    from ...domain.uow import RideCityUnitOfWork
+from ...domain.uow import RideCityUnitOfWork
 
 
 @dataclass(frozen=True, slots=True)
