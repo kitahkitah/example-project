@@ -1,6 +1,6 @@
 from fastapi import APIRouter, status
 
-from auth import UserBearerAuth
+from auth import UserBearerAuthDep
 from shared import errors as shared_errs
 from shared.infrastructure.config import settings
 from shared.infrastructure.logging import logger
@@ -32,7 +32,7 @@ async def create_user(body: schemas.CreateUserRequest) -> User:
 
 
 @router.get('/me', response_model=schemas.OwnProfileResponse)
-async def get_own_profile(user_id: UserBearerAuth) -> User:
+async def get_own_profile(user_id: UserBearerAuthDep) -> User:
     """Get the requesting user data."""
     uow = UserSQLAlchemyUnitOfWork(common_redis, db_sessionmaker)
     get_user_uc = uc.GetUserUsecase(uow)
@@ -40,7 +40,7 @@ async def get_own_profile(user_id: UserBearerAuth) -> User:
 
 
 @router.patch('/me', response_model=schemas.OwnProfileResponse)
-async def update_user(user_id: UserBearerAuth, body: schemas.UpdateUserRequest, idempotency: IdempotencyDep) -> User:
+async def update_user(user_id: UserBearerAuthDep, body: schemas.UpdateUserRequest, idempotency: IdempotencyDep) -> User:
     """Update user data."""
     uow = UserSQLAlchemyUnitOfWork(common_redis, db_sessionmaker)
     update_user_uc = uc.UpdateUserUsecase(uow)
@@ -54,7 +54,7 @@ async def update_user(user_id: UserBearerAuth, body: schemas.UpdateUserRequest, 
 
 
 @router.post('/me/confirm-email', status_code=status.HTTP_204_NO_CONTENT)
-async def confirm_email(user_id: UserBearerAuth, body: schemas.ConfirmEmailRequest) -> None:
+async def confirm_email(user_id: UserBearerAuthDep, body: schemas.ConfirmEmailRequest) -> None:
     """Confirm email with OTP code."""
     uow = UserSQLAlchemyUnitOfWork(common_redis, db_sessionmaker)
     code_service = RedisStoredEmailConfirmationCodeService(common_redis)
@@ -67,7 +67,7 @@ async def confirm_email(user_id: UserBearerAuth, body: schemas.ConfirmEmailReque
 
 
 @router.post('/me/send-confirmation-mail', status_code=status.HTTP_204_NO_CONTENT)
-async def send_confirmation_mail(user_id: UserBearerAuth, idempotency: IdempotencyDep) -> None:
+async def send_confirmation_mail(user_id: UserBearerAuthDep, idempotency: IdempotencyDep) -> None:
     """Send OTP code for email confirmation via mail."""
     uow = UserSQLAlchemyUnitOfWork(common_redis, db_sessionmaker)
     code_service = RedisStoredEmailConfirmationCodeService(common_redis)

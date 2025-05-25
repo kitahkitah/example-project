@@ -40,6 +40,7 @@ class CreateUserUsecase:
 
         async with self._uow:
             await self._uow.user_repo.check_email_unique(user.email)
+
             await self._uow.user_repo.create(user)
             self._uow.commit()
         return user

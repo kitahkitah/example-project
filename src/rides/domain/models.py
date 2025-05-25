@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, NewType
 from uuid import UUID, uuid4
 
 from shared.domain.models import Entity
-from users import UserId
+from users import UserId as UserId
 
 from .. import errors as domain_errs
 from ..constants import MAX_VEHICLE_SEATS

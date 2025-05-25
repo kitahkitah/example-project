@@ -25,5 +25,5 @@ class EmailIsUsedError(ProjectError):
 class EmailIsConfirmedError(ProjectError):
     """Email confirmation error."""
 
-    code = None
+    code = 3
     detail = 'Email is already confirmed'

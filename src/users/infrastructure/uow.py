@@ -16,10 +16,9 @@ if TYPE_CHECKING:
 class UserSQLAlchemyUnitOfWork:
     """Unit of work for users."""
 
-    def __init__(self, redis_connection: Redis, session_factory: async_sessionmaker) -> None:
+    def __init__(self, redis_connection: Redis, session_factory: async_sessionmaker[AsyncSession]) -> None:
         self._redis_con = redis_connection
         self._session_factory = session_factory
-        self._session: AsyncSession = None  # type: ignore[assignment]
         self._to_commit = False
 
     async def __aenter__(self) -> Self:

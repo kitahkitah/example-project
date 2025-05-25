@@ -16,4 +16,4 @@ def authenticate_request(credentials: Annotated[HTTPAuthorizationCredentials, De
     return UserId(UUID(credentials.credentials))
 
 
-UserBearerAuth = Annotated[UserId, Depends(authenticate_request)]
+UserBearerAuthDep = Annotated[UserId, Depends(authenticate_request)]

@@ -13,12 +13,11 @@ if TYPE_CHECKING:
 class FakeCityRepository:
     """A repository with fake cities."""
 
-    def __init__(self):
-        self._cities = [
-            City(id=CityId(UUID('00000000-0000-0000-0000-000000000000')), name='City A'),
-            City(id=CityId(UUID('00000000-0000-0000-0000-000000000001')), name='City B'),
-            City(id=CityId(UUID('00000000-0000-0000-0000-000000000002')), name='City 17'),
-        ]
+    _cities = (
+        City(id=CityId(UUID('00000000-0000-0000-0000-000000000000')), name='City A'),
+        City(id=CityId(UUID('00000000-0000-0000-0000-000000000001')), name='City B'),
+        City(id=CityId(UUID('00000000-0000-0000-0000-000000000002')), name='City 17'),
+    )
 
     def list(self, ids: Iterable[CityId]) -> dict[CityId, City]:
         """Return cities mapping.

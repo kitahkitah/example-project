@@ -1,3 +1,3 @@
-from .presentation.auth_header import UserBearerAuth
+from .presentation.functions.authenticate_request import UserBearerAuthDep
 
-__all__ = ['UserBearerAuth']
+__all__ = ['UserBearerAuthDep']

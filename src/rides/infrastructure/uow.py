@@ -16,9 +16,8 @@ if TYPE_CHECKING:
 class RideSQLAlchemyUnitOfWork:
     """Unit of work for rides."""
 
-    def __init__(self, session_factory: async_sessionmaker) -> None:
+    def __init__(self, session_factory: async_sessionmaker[AsyncSession]) -> None:
         self._session_factory = session_factory
-        self._session: AsyncSession = None  # type: ignore[assignment]
         self._to_commit = False
 
     async def __aenter__(self) -> Self:
@@ -44,9 +43,8 @@ class RideSQLAlchemyUnitOfWork:
 class RideSQLAlchemyCityFakeUnitOfWork:
     """Unit of work for rides with cities."""
 
-    def __init__(self, session_factory: async_sessionmaker) -> None:
+    def __init__(self, session_factory: async_sessionmaker[AsyncSession]) -> None:
         self._session_factory = session_factory
-        self._session: AsyncSession = None  # type: ignore[assignment]
         self._to_commit = False
 
     async def __aenter__(self) -> Self:

@@ -2,7 +2,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Query, status
 
-from auth import UserBearerAuth
+from auth import UserBearerAuthDep
 from shared import errors as shared_errs
 from shared.infrastructure.redis import common as common_redis
 from shared.infrastructure.redis_cache import RedisCache
@@ -22,7 +22,7 @@ router = APIRouter()
 
 
 @router.get('')
-async def filter_rides(params: Annotated[schemas.FilterRidesParams, Query()]) -> dict:
+async def filter_rides(params: Annotated[schemas.FilterRidesParams, Query()]) -> dict:  # type: ignore[type-arg]
     """Filter rides by cities, date and available seats."""
     params_dto = uc.FilterParamsDTO(
         city_id_departure=params.city_id_departure,
@@ -41,7 +41,7 @@ async def filter_rides(params: Annotated[schemas.FilterRidesParams, Query()]) ->
 
 @router.post('', status_code=status.HTTP_201_CREATED)
 async def create_ride(
-    body: schemas.CreateRideRequest, user_id: UserBearerAuth, idempotency: IdempotencyDep
+    body: schemas.CreateRideRequest, user_id: UserBearerAuthDep, idempotency: IdempotencyDep
 ) -> uc.CreateRideReturnDTO:
     """Create a new ride."""
     uow = RideSQLAlchemyCityFakeUnitOfWork(db_sessionmaker)
@@ -75,7 +75,7 @@ async def get_complex_ride(ride_id: RideId) -> ComplexRideDTO:
 
 @router.patch('/{ride_id}', response_model=schemas.UpdateRideResponse)
 async def update_ride(
-    ride_id: RideId, body: schemas.UpdateRideRequest, user_id: UserBearerAuth, idempotency: IdempotencyDep
+    ride_id: RideId, body: schemas.UpdateRideRequest, user_id: UserBearerAuthDep, idempotency: IdempotencyDep
 ) -> Ride:
     """Update the ride."""
     uow = RideSQLAlchemyUnitOfWork(db_sessionmaker)
@@ -96,7 +96,7 @@ async def update_ride(
 
 @router.post('/{ride_id}/book', status_code=status.HTTP_204_NO_CONTENT, response_model=None)
 async def book_ride(
-    ride_id: RideId, body: schemas.BookRideRequest, user_id: UserBearerAuth, idempotency: IdempotencyDep
+    ride_id: RideId, body: schemas.BookRideRequest, user_id: UserBearerAuthDep, idempotency: IdempotencyDep
 ) -> None:
     """Book the ride."""
     uow = RideSQLAlchemyUnitOfWork(db_sessionmaker)
@@ -112,7 +112,7 @@ async def book_ride(
 
 
 @router.post('/{ride_id}/cancel', status_code=status.HTTP_204_NO_CONTENT, response_model=None)
-async def cancel_ride(ride_id: RideId, user_id: UserBearerAuth) -> None:
+async def cancel_ride(ride_id: RideId, user_id: UserBearerAuthDep) -> None:
     """Cancel the ride."""
     uow = RideSQLAlchemyUnitOfWork(db_sessionmaker)
     cache = RedisCache(common_redis)
@@ -129,7 +129,7 @@ async def cancel_ride(ride_id: RideId, user_id: UserBearerAuth) -> None:
 
 
 @router.post('/{ride_id}/leave', status_code=status.HTTP_204_NO_CONTENT, response_model=None)
-async def leave_ride(ride_id: RideId, user_id: UserBearerAuth, idempotency: IdempotencyDep) -> None:
+async def leave_ride(ride_id: RideId, user_id: UserBearerAuthDep, idempotency: IdempotencyDep) -> None:
     """Leave the ride."""
     uow = RideSQLAlchemyUnitOfWork(db_sessionmaker)
     cache = RedisCache(common_redis)

@@ -25,6 +25,7 @@ class ConfirmEmailUsecase:
 
         Raise:
             - EmailIsConfirmedError, if user's email is already confirmed;
+            - EmailConfirmationCodeError, if the code is invalid;
         """
         async with self._uow:
             user = await self._uow.user_repo.get(user_id)
@@ -37,5 +38,6 @@ class ConfirmEmailUsecase:
                 raise EmailConfirmationCodeError from None
 
             user.email_confirmed = True
+
             await self._uow.user_repo.update(user)
             self._uow.commit()

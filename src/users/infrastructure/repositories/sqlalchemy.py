@@ -96,6 +96,7 @@ class SQLAlchemyUserRepository:
     async def update(self, user: User) -> None:
         """Save the user changes."""
         updates = {k: getattr(user, k) for k in user.get_changed_fields()}
+
         q = update(UserSQLAlchemyModel).where(UserSQLAlchemyModel.id == user.id).values(**updates)
         await self._session.execute(q)
 

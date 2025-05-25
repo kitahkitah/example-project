@@ -20,7 +20,7 @@ sessionmaker = async_sessionmaker(autoflush=False, expire_on_commit=False, bind=
 if settings.DEBUG:
 
     @event.listens_for(engine.sync_engine, 'before_cursor_execute')
-    def explain_all_queries(conn, cursor, statement, parameters, context, executemany):
+    def explain_all_queries(conn, cursor, statement, parameters, context, executemany):  # type: ignore[no-untyped-def]
         """EXPLAIN all queries."""
         stmt_lower = statement.lstrip().upper()
         if stmt_lower.startswith('EXPLAIN'):

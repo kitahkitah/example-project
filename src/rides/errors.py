@@ -4,21 +4,21 @@ from shared.errors import ProjectError
 class DisallowedToChangeError(ProjectError):
     """Update restricted fields error."""
 
-    code = None
+    code = 4
     detail = "It's disallowed to change departure_time, description, price when there are pessengers"
 
 
 class SeatsNumberLessThanPassengersError(ProjectError):
     """Passengers number must be <= seats number."""
 
-    code = None
-    detail = 'Passengers number must be less or equal than seats number'
+    code = 5
+    detail = 'The seats number must be greater or equal to the passengers number'
 
 
 class RideCantBeCancelledError(ProjectError):
     """Ride has passengers and is about to start."""
 
-    code = None
+    code = 6
     detail = 'The ride is about to start, so it cannot be cancelled'
 
 
@@ -32,7 +32,7 @@ class CityNotFoundError(ProjectError):
 class ActiveRideNotFoundError(ProjectError):
     """No active ride was found."""
 
-    code = None
+    code = 7
     detail = "The ride doesn't exists or has already taken place"
 
 
@@ -50,7 +50,7 @@ class PriceError(ProjectError):
 class UserAlreadyIsPassengerError(ProjectError):
     """Can't book ride twice."""
 
-    code = None
+    code = 8
     detail = 'User is already a passenger of this ride'
 
 
@@ -64,14 +64,14 @@ class OwnerCantBePassengerError(ProjectError):
 class UserIsntPassengerError(ProjectError):
     """Can't leave the ride that isn't booked."""
 
-    code = None
-    detail = "User isn't a passenger of this ride"
+    code = 9
+    detail = "User isn't a passenger"
 
 
 class RideIsFullError(ProjectError):
     """No seats available."""
 
-    code = None
+    code = 10
     detail = 'The ride is full'
 
 

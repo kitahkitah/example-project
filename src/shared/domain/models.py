@@ -4,7 +4,7 @@ class Entity:
     def __init__(self) -> None:
         self._changed_fields: set[str] = set()
 
-    def __setattr__(self, key, value):
+    def __setattr__(self, key: str, value: object) -> None:
         if not key.startswith('_') and hasattr(self, '_changed_fields'):
             self._changed_fields.add(key)
 

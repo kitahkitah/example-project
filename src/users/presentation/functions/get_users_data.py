@@ -32,6 +32,7 @@ async def get_users_data(ids: list[UserId], db_session: AsyncSession) -> dict[Us
         age = (
             today.year
             - user.birth_date.year
+            # - 1 year if the user's birthday has already passed
             - int((today.month, today.day) < (user.birth_date.month, user.birth_date.day))
         )
 

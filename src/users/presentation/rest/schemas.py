@@ -48,6 +48,7 @@ class GetUserResponse(BaseModel):
         return (
             today.year
             - self.birth_date.year
+            # - 1 year if the user's birthday has already passed
             - int((today.month, today.day) < (self.birth_date.month, self.birth_date.day))
         )
 

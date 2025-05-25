@@ -4,7 +4,7 @@ from datetime import UTC, datetime
 from sqlalchemy import TIMESTAMP, ForeignKey, Index, SmallInteger, delete, select, update
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import Mapped, joinedload, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column, relationship, selectinload
 
 from shared.infrastructure.sqlalchemy import Base
 
@@ -77,14 +77,18 @@ class SQLAlchemyRideRepository:
         self._session.add(db_ride)
 
     async def get_if_active(self, id: domain_models.RideId) -> domain_models.Ride:
-        """Obtain the ride if it's active.
+        """Obtain the ride for the following update if it's active.
+        WARNING: the method uses SELECT FOR UPDATE.
 
         Raise:
             - ActiveRideNotFoundError, if ride isn't active or wasn't found at all;
         """
+        # selectinload is used instead of joinedload,
+        # since SELECT FOR UPDATE isn't supported with JOIN by PostgreSQL
         q = (
             select(RideSQLAlchemyModel)
-            .options(joinedload(RideSQLAlchemyModel.passengers))
+            .with_for_update()
+            .options(selectinload(RideSQLAlchemyModel.passengers))
             .where(
                 RideSQLAlchemyModel.id == id,
                 RideSQLAlchemyModel.is_cancelled == False,
@@ -118,6 +122,7 @@ class SQLAlchemyRideRepository:
 
         with suppress(KeyError):
             changed_fields.remove('passengers_added')
+
             updates['seats_available'] = ride.seats_available
 
             insert_q = insert(PassengerSQLAlchemyModel).values(
@@ -130,6 +135,7 @@ class SQLAlchemyRideRepository:
 
         with suppress(KeyError):
             changed_fields.remove('passengers_removed')
+
             updates['seats_available'] = ride.seats_available
 
             passenger_ids = [p.id for p in ride.passengers]
@@ -140,6 +146,7 @@ class SQLAlchemyRideRepository:
 
         with suppress(KeyError):
             changed_fields.remove('seats_number')
+
             updates['seats_available'] = ride.seats_available
 
         updates.update({k: getattr(ride, k) for k in changed_fields})

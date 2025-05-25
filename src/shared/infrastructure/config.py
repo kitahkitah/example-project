@@ -44,4 +44,4 @@ class Settings(BaseSettings):
         return url + f'{self.REDIS_HOST}:{self.REDIS_PORT}'
 
 
-settings = Settings()  # type: ignore[call-arg]
+settings = Settings()

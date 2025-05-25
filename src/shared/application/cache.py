@@ -2,9 +2,9 @@ from typing import Protocol
 
 
 class Cache(Protocol):
-    """A protocol for cache storing."""
+    """A protocol for cache."""
 
-    async def delete(self, *key: str) -> None:
+    async def delete(self, *keys: str) -> None:
         """Delete value by key."""
 
     async def get(self, key: str) -> str | None:

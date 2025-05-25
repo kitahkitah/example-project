@@ -11,7 +11,7 @@ from ..repositories.ride_sqlalchemy import RideSQLAlchemyModel as Model
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 
-    from ...application.queries.filter_rides import FilterParamsDTO
+    from ...application.use_cases.filter_rides import FilterParamsDTO
 
 
 class SQLAlchemyFilterRidesQuery:

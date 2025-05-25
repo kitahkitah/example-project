@@ -15,7 +15,7 @@ class RideRepository(Protocol):
         """Create a new ride."""
 
     async def get_if_active(self, id: RideId) -> Ride:
-        """Obtain the ride if it's active.
+        """Obtain the ride for the following update if it's active.
 
         Raise:
             - ActiveRideNotFoundError, if ride isn't active or wasn't found at all;

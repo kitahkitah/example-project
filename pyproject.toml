@@ -27,8 +27,10 @@ dev = [
 [tool.mypy]
 exclude = ['^_alembic/']
 explicit_package_bases = 1
+plugins = ['pydantic.mypy']
 python_version = '3.13'
 
+strict = true
 disallow_incomplete_defs = true
 warn_redundant_casts = true
 warn_unused_ignores = true

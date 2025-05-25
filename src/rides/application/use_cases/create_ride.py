@@ -81,8 +81,8 @@ class CreateRideUsecase:
             await self._uow.ride_repo.create(ride)
             self._uow.commit()
 
-            departure_city = cities_data[ride.route.city_id_departure]
-            destination_city = cities_data[ride.route.city_id_destination]
+        departure_city = cities_data[ride.route.city_id_departure]
+        destination_city = cities_data[ride.route.city_id_destination]
 
         return CreateRideReturnDTO(
             departure_time=ride.departure_time,
